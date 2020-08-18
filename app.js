@@ -1,19 +1,30 @@
 const express = require('express');
-
+const morgan = require('morgan')
 const app = express(); 
+const Blog = require('./models/blog')
+// connect to mongodb
+
+const dbURI = 'mongodb+srv://netNinja:pass123@cluster0.yizgi.mongodb.net/nodeHomework?retryWrites=true&w=majority'
+
+
+
+const mongoose = require('mongoose');
+mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true})
+.then((result) => app.listen(3001))
+.catch((err) => console.log(err))
 
 app.set('view engine', 'ejs')
 
 // listen for requests
 app.listen(3000);
+// middleware & static files
+app.use(express.static('public'));
+app.use(morgan('dev'));
+
+
 
 app.get('/', (req, res) =>{
-const blogs = [
-{title: 'Yoshi finds eggs', snippet : 'Lorem ipsum dolor sit amet consectetur.'},
-{title: 'Mario finds stars', snippet : 'Lorem ipsum dolor sit amet consectetur.'},
-{title: 'How to defeat Bowser', snippet : 'Lorem ipsum dolor sit amet consectetur.'}
-];
- res.render('index', {title: 'Home', blogs});   
+res.redirect ('/blogs')
 });
 app.get('/about', (req, res) =>{
     res.render('about', { title: 'about'})
@@ -24,7 +35,16 @@ app.get('/about', (req, res) =>{
 app.get('/about-us', (req, res) => {
        res.redirect('/about');
 })
-
+// these are the blog routes
+app.get('/blogs', (req, res) => {
+    Blog.find().sort({ createdAt: -1 })
+    .then((result) => {
+            res.render('index', { title: 'All Blogs', blogs: result})
+    })
+    .catch((err) => {
+        console.log(err);
+    })
+})
 app.get('/blogs/create', (req,res) => {
     res.render('create' , { title: 'New Blog'});
 })
